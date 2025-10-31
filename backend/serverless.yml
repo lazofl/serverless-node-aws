@@ -1,0 +1,59 @@
+service: serverless-backend
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: ${env:AWS_REGION, 'us-central-1'}
+  environment:
+    AWS_REGION: ${env:AWS_REGION, 'us-central-1'}
+    DYNAMODB_ENDPOINT: ${env:DYNAMODB_ENDPOINT, 'local'}
+functions:
+  getAllUsers:
+    handler: src/getAllUsers.handler
+    events:
+      - http:
+          path: users
+          method: get
+          cors: true
+
+  getUser:
+    handler: src/getUser.handler
+    events:
+      - http:
+          path: users/{userId}
+          method: get
+          cors: true
+
+  addUser:
+    handler: src/addUser.handler
+    events:
+      - http:
+          path: users
+          method: post
+          cors: true
+
+plugins:
+  - serverless-dotenv-plugin
+  - serverless-esbuild
+  - serverless-offline
+
+custom:
+  dotenv:
+    path: .env.local
+    basePath: ./
+    include:
+      - AWS_REGION
+      - DYNAMODB_ENDPOINT
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+  esbuild:
+    bundle: true
+    minify: false
+    sourcemap: true
+    exclude:
+      - aws-sdk
+    target: node20
+    platform: node
+  serverless-offline:
+    httpPort: 3001
+    host: 0.0.0.0
